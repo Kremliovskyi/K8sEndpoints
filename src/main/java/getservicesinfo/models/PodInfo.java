@@ -13,6 +13,9 @@ public class PodInfo implements Comparable<PodInfo>{
     private String phase;
     private String selectedContainer;
 
+    public PodInfo() {
+    }
+
     public PodInfo(String name, String ip, String podNameSpace, DateTime podCreationTimestamp, String phase) {
         this.name = name;
         this.ip = ip;

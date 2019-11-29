@@ -190,19 +190,22 @@ public class Kube {
                             Integer sinceSeconds,
                             Integer tailLines,
                             ProgressBar progressBar) {
-        try {
-            progressBar.setVisible(true);
-            api.readNamespacedPodLogAsync(podInfo.getName(), podInfo.getPodNameSpace(), getContainer(podInfo), null, null, "true",
-                    null, sinceSeconds, tailLines, null, new PodCallBack(isEqual, log, progressBar));
-        } catch (ApiException e) {
-            Main.showAlert(e.getMessage());
-        }
+        LogRequest logRequest = new LogRequest.Builder()
+                .setPodInfo(podInfo)
+                .setEqual(isEqual)
+                .setLog(log)
+                .setSinceSeconds(sinceSeconds)
+                .setTailLines(tailLines)
+                .build();
+        new LogsProcessor(progressBar, this)
+                .setLogRequest(logRequest)
+                .findPodLogs();
     }
 
     public void restartEndpoint(Endpoint endpoint) {
         endpoint.getPods().forEach(podInfo -> {
             try {
-                api.deleteNamespacedPodAsync(podInfo.getName(), podInfo.getPodNameSpace(), null, new V1DeleteOptions(),  null,
+                api.deleteNamespacedPodAsync(podInfo.getName(), podInfo.getPodNameSpace(), null, new V1DeleteOptions(), null,
                         null, null, null, null);
             } catch (Throwable ignore) {}
         });
@@ -212,8 +215,7 @@ public class Kube {
         return currentContext;
     }
 
-    private String getContainer(PodInfo podInfo) {
-        String selectedContainer = podInfo.getSelectedContainer();
-        return selectedContainer != null && !selectedContainer.isEmpty() ? selectedContainer : null;
+    CoreV1Api getApi() {
+        return api;
     }
 }

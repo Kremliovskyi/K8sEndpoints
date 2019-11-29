@@ -35,17 +35,6 @@ public class PodControlBox extends HBox {
         searchLogsButton.setOnMouseClicked(event -> {
             PodInfo selectedPod = podsStage.getSelectedPod();
             if (selectedPod != null) {
-                if (selectedPod.getName().contains("service-gateway-external")) {
-                    ButtonType result = getGatewayType(EXTERNAL_GATEWAY_OPTIONS, "service-gateway-external");
-                    if (result != ButtonType.CLOSE) {
-                        selectedPod.setSelectedContainer(result.getText());
-                    }
-                } else if (selectedPod.getName().contains("service-gateway-internal")) {
-                    ButtonType result = getGatewayType(INTERNAL_GATEWAY_OPTIONS, "service-gateway-internal");
-                    if (result != ButtonType.CLOSE) {
-                        selectedPod.setSelectedContainer(result.getText());
-                    }
-                }
                 new LogsStage(this).showStage();
             } else {
                 Main.showAlert("Select Pod first");
