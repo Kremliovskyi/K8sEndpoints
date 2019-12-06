@@ -139,7 +139,8 @@ public class Main extends Application {
         VBox splashLayout = new VBox();
         splashLayout.getChildren().add(splash);
         Scene splashScene = new Scene(splashLayout);
-        initStage.initStyle(StageStyle.UNDECORATED);
+        splashScene.setFill(Color.TRANSPARENT);
+        initStage.initStyle(StageStyle.TRANSPARENT);
         initStage.setScene(splashScene);
         initStage.show();
     }
