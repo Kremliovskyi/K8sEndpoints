@@ -37,25 +37,21 @@ public class Kube {
     private CountDownLatch latch = new CountDownLatch(1);
     private String currentContext;
 
-    public Kube(String context) {
+    public Kube(String context) throws Throwable {
         getEndpointInfo(context);
     }
 
-    public void getEndpointInfo(String context) {
+    public void getEndpointInfo(String context) throws Throwable {
         currentContext = context;
-        try {
-            KubeConfig kc = KubeConfig.loadKubeConfig(ConfigParser.getInstance().getConfigFileReader());
-            kc.setContext(context);
-            ApiClient client = ClientBuilder.kubeconfig(kc).build();
-            Configuration.setDefaultApiClient(client);
-            api = new CoreV1Api();
-            fillInfo(api);
-        } catch (IOException | ApiException e) {
-            Main.showAlert(e.getMessage());
-        }
+        KubeConfig kc = KubeConfig.loadKubeConfig(ConfigParser.getInstance().getConfigFileReader());
+        kc.setContext(context);
+        ApiClient client = ClientBuilder.kubeconfig(kc).build();
+        Configuration.setDefaultApiClient(client);
+        api = new CoreV1Api();
+        fillInfo(api);
     }
 
-    private void fillInfo(CoreV1Api api) throws ApiException {
+    private void fillInfo(CoreV1Api api) throws Throwable {
         getDetailedPodsInfo(api);
         V1EndpointsList v1EndpointsList = api.listEndpointsForAllNamespaces(null, null, null, null, null, null, null, null);
         v1EndpointsList.getItems().forEach(endpoint -> {
@@ -82,12 +78,12 @@ public class Kube {
         latch = new CountDownLatch(1);
     }
 
-    private void getDetailedPodsInfo(CoreV1Api api) throws ApiException {
+    private void getDetailedPodsInfo(CoreV1Api api) throws Throwable {
         api.listPodForAllNamespacesAsync(null, null, null, null, null, null, null, null,
                 new ApiCallback<V1PodList>() {
                     @Override
                     public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
-                        Main.showAlert("V1PodList was not retrieved. Try to refresh.");
+                        throw new RuntimeException("V1PodList was not retrieved. Try to refresh.");
                     }
 
                     @Override
@@ -110,9 +106,11 @@ public class Kube {
 
     private void getPodInfo(List<V1EndpointAddress> addresses) {
         try {
-            latch.await(15L, TimeUnit.SECONDS);
+            if (!latch.await(1L, TimeUnit.SECONDS)) {
+                throw new RuntimeException("V1PodList was not retrieved. Try to refresh.");
+            }
         } catch (InterruptedException e) {
-            Main.showAlert("V1PodList was not retrieved. Try to refresh.");
+            throw new RuntimeException(e.getMessage());
         }
         addresses.forEach(v1EndpointAddress -> {
             ip = v1EndpointAddress.getIp();
@@ -205,9 +203,10 @@ public class Kube {
     public void restartEndpoint(Endpoint endpoint) {
         endpoint.getPods().forEach(podInfo -> {
             try {
-                api.deleteNamespacedPodAsync(podInfo.getName(), podInfo.getPodNameSpace(), null, new V1DeleteOptions(), null,
-                        null, null, null, null);
-            } catch (Throwable ignore) {}
+                api.deleteNamespacedPodAsync(podInfo.getName(), podInfo.getPodNameSpace(), null, null, null,
+                        0, null, null, null);
+            } catch (Throwable ignore) {
+            }
         });
     }
 

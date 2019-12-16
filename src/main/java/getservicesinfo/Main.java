@@ -8,12 +8,14 @@ import getservicesinfo.endpointcontrol.EndpointControlBox;
 import getservicesinfo.endpointcontrol.EndpointTable;
 import getservicesinfo.kubernetes.Kube;
 import getservicesinfo.menu.ConfigFileMenu;
+import io.kubernetes.client.ApiException;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -25,6 +27,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
@@ -34,6 +37,7 @@ public class Main extends Application {
     private StackPane root;
     private Stage mainStage;
     private boolean isShowing;
+    private Kube kube;
 
     public static void main(String[] args) {
         launch(args);
@@ -70,7 +74,9 @@ public class Main extends Application {
     }
 
     public void reloadMainStage() {
-        mainStage.hide();
+        if (mainStage != null) {
+            mainStage.hide();
+        }
         showMainStage(new Stage(StageStyle.DECORATED));
     }
 
@@ -110,25 +116,42 @@ public class Main extends Application {
     private void showMainStage(Stage stage) {
         showSplash(stage);
         Executors.newSingleThreadExecutor().submit(() -> {
-            Kube kube = new Kube(ConfigParser.getInstance().getCurrentContext());
-            Platform.runLater(() -> {
-                ConfigFileMenu configFileMenu = new ConfigFileMenu(this);
-                EndpointTable endpointTable = new EndpointTable(kube, this);
-                ContextButtonsBox contextButtons = new ContextButtonsBox(endpointTable);
-                EndpointControlBox endpointControlBox = new EndpointControlBox(endpointTable);
-                mainStage = new Stage(StageStyle.DECORATED);
-                stage.hide();
-                VBox vbox = new VBox(configFileMenu, contextButtons, endpointTable, endpointControlBox);
-                root = new StackPane();
-                root.getChildren().add(0, vbox);
-                Scene scene = new Scene(root);
-                scene.getStylesheets().add("styles.css");
-                mainStage.setScene(scene);
-                mainStage.setTitle("Services Info");
-                mainStage.show();
-                isShowing = true;
-                root.requestFocus();
-            });
+            try {
+                kube = new Kube(ConfigParser.getInstance().getCurrentContext());
+                Platform.runLater(() -> {
+                    ConfigFileMenu configFileMenu = new ConfigFileMenu(this);
+                    EndpointTable endpointTable = new EndpointTable(kube, this);
+                    ContextButtonsBox contextButtons = new ContextButtonsBox(endpointTable);
+                    EndpointControlBox endpointControlBox = new EndpointControlBox(endpointTable);
+                    mainStage = new Stage(StageStyle.DECORATED);
+                    stage.hide();
+                    VBox vbox = new VBox(configFileMenu, contextButtons, endpointTable, endpointControlBox);
+                    root = new StackPane();
+                    root.getChildren().add(0, vbox);
+                    Scene scene = new Scene(root);
+                    scene.getStylesheets().add("styles.css");
+                    mainStage.setScene(scene);
+                    mainStage.setTitle("Services Info");
+                    mainStage.show();
+                    isShowing = true;
+                    root.requestFocus();
+                });
+            } catch (Throwable e) {
+                handleCrash(stage, e);
+            }
+        });
+    }
+
+    private void handleCrash(Stage stage, Throwable e) {
+        Platform.runLater(() -> {
+            stage.hide();
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, e.getMessage(), new ButtonType("Refresh"), new ButtonType("Cancel"));
+            alert.showAndWait();
+            if (alert.getResult().getText().equals("Refresh")) {
+                reloadMainStage();
+            } else {
+                System.exit(0);
+            }
         });
     }
 

@@ -5,10 +5,13 @@ import getservicesinfo.TableWithCopy;
 import getservicesinfo.kubernetes.Kube;
 import getservicesinfo.models.Endpoint;
 import getservicesinfo.podcontrol.PodsStage;
+import io.kubernetes.client.ApiException;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+
+import java.io.IOException;
 
 public class EndpointTable extends TableWithCopy<Endpoint> {
 
@@ -59,7 +62,11 @@ public class EndpointTable extends TableWithCopy<Endpoint> {
             currentContext = context;
             getItems().clear();
             kube.resetEndpoints();
-            kube.getEndpointInfo(context);
+            try {
+                kube.getEndpointInfo(context);
+            } catch (Throwable e) {
+                Main.showAlert(e.getMessage());
+            }
             getItems().addAll(kube.getEndpoints());
             Platform.runLater(() -> {
                 main.disableProgressIndicator();
