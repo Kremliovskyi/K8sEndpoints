@@ -106,7 +106,7 @@ public class Kube {
 
     private void getPodInfo(List<V1EndpointAddress> addresses) {
         try {
-            if (!latch.await(1L, TimeUnit.SECONDS)) {
+            if (!latch.await(3L, TimeUnit.MINUTES)) {
                 throw new RuntimeException("V1PodList was not retrieved. Try to refresh.");
             }
         } catch (InterruptedException e) {
