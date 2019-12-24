@@ -9,14 +9,24 @@ import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
-import io.kubernetes.client.models.*;
+import io.kubernetes.client.models.V1EndpointAddress;
+import io.kubernetes.client.models.V1EndpointSubset;
+import io.kubernetes.client.models.V1Endpoints;
+import io.kubernetes.client.models.V1EndpointsList;
+import io.kubernetes.client.models.V1ObjectMeta;
+import io.kubernetes.client.models.V1ObjectReference;
+import io.kubernetes.client.models.V1PodList;
+import io.kubernetes.client.models.V1PodSpec;
+import io.kubernetes.client.models.V1PodStatus;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import javafx.scene.control.ProgressBar;
 import org.joda.time.DateTime;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +59,35 @@ public class Kube {
         Configuration.setDefaultApiClient(client);
         api = new CoreV1Api();
         fillInfo(api);
+    }
+
+    public Set<PodInfo> getAllPodsInfo() {
+        Set<PodInfo> podInfoSet = new TreeSet<>();
+        try {
+            V1PodList v1PodList = api.listPodForAllNamespaces(null, null, null, null, null, null, null, null);
+            v1PodList.getItems().forEach(v1Pod -> {
+                String name;
+                String ip;
+                String namespace;
+                String phase;
+                DateTime creationTimestamp;
+                V1ObjectMeta v1ObjectMeta = v1Pod.getMetadata();
+                V1PodStatus v1PodStatus = v1Pod.getStatus();
+                V1PodSpec v1PodSpec = v1Pod.getSpec();
+                if (v1ObjectMeta != null && v1PodStatus != null && v1PodSpec != null) {
+                    name = v1ObjectMeta.getName();
+                    ip = v1PodStatus.getPodIP();
+                    namespace = v1ObjectMeta.getNamespace();
+                    creationTimestamp = v1ObjectMeta.getCreationTimestamp();
+                    phase = v1PodStatus.getPhase();
+                    PodInfo podInfo = new PodInfo(name, ip, namespace, creationTimestamp, phase);
+                    podInfoSet.add(podInfo);
+                }
+            });
+        } catch (ApiException e) {
+            Main.showAlert(e.getMessage());
+        }
+        return podInfoSet;
     }
 
     private void fillInfo(CoreV1Api api) throws Throwable {

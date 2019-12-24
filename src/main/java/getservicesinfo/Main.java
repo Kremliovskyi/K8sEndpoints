@@ -1,5 +1,6 @@
 package getservicesinfo;
 
+import getservicesinfo.allpods.AllPodsButton;
 import getservicesinfo.configfilechooser.ConfigFileStage;
 import getservicesinfo.configfilechooser.UserPreferences;
 import getservicesinfo.configparser.ConfigParser;
@@ -8,8 +9,6 @@ import getservicesinfo.endpointcontrol.EndpointControlBox;
 import getservicesinfo.endpointcontrol.EndpointTable;
 import getservicesinfo.kubernetes.Kube;
 import getservicesinfo.menu.ConfigFileMenu;
-import io.kubernetes.client.ApiException;
-import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -19,15 +18,14 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
@@ -125,7 +123,10 @@ public class Main extends Application {
                     EndpointControlBox endpointControlBox = new EndpointControlBox(endpointTable);
                     mainStage = new Stage(StageStyle.DECORATED);
                     stage.hide();
-                    VBox vbox = new VBox(configFileMenu, contextButtons, endpointTable, endpointControlBox);
+                    AllPodsButton allPodsButton = new AllPodsButton(kube);
+                    HBox hBox = new HBox(allPodsButton, endpointControlBox);
+                    hBox.setAlignment(Pos.BOTTOM_CENTER);
+                    VBox vbox = new VBox(configFileMenu, contextButtons, endpointTable, hBox);
                     root = new StackPane();
                     root.getChildren().add(0, vbox);
                     Scene scene = new Scene(root);

@@ -14,7 +14,14 @@ public class PodsTable extends TableWithCopy<PodInfo> {
 
     private PodInfo selectedPod;
 
-    PodsTable(Set<PodInfo> podInfoSet) {
+    public PodsTable() {
+    }
+
+    public PodsTable(Set<PodInfo> podInfoSet) {
+        processPodInfo(podInfoSet);
+    }
+
+    public void processPodInfo(Set<PodInfo> podInfoSet) {
         setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
