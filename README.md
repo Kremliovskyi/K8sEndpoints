@@ -24,10 +24,10 @@ The table content then will change to the endpoints in corresponding cluster. T
 
 ![context selected](https://github.com/Kremliovskyi/K8sEndpoints/blob/master/src/test/resources/uat-context.png)
 
-## Restart endpoint:
-To restart endpoint you need to select it from the table and click "Restart" button below the table. After you confirm the action in the dialogue all Kubernetes pods will be deleted and Kubernetes will recreate them approximately in a minute or two.
+## Get All Pods:
+You may see the table with all available pods by pressing "All Pods" button
 
-## Refresh table content:
+## Refresh endpoints table content:
 "Refresh" button will only refresh the content of the table of currently selected context.
 
 ## Pods information:
@@ -35,6 +35,9 @@ By selecting one endpoint and clicking "Info" button the new window with pods th
 ![pods info](https://github.com/Kremliovskyi/K8sEndpoints/blob/master/src/test/resources/pod-screen.png)
 
 It is possible to copy row that will consist of "Pod name" and "IP" columns in the same way as copying endpoint rows from the main screen.
+
+## Restart endpoint:
+To restart endpoint you need to select it from the table and click "Restart" button below the table. After you confirm the action in the dialogue all Kubernetes pods will be deleted and Kubernetes will recreate them approximately in a minute or two.
 
 ## Search Logs:
 It is possible to get the logs from the pod. For this you need to select a pod and click "Search Logs" button:
