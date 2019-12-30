@@ -31,14 +31,17 @@ public class PodsTable extends TableWithCopy<PodInfo> {
         TableColumn<PodInfo, String> column2 = new TableColumn<>("IP");
         column2.setCellValueFactory(new PropertyValueFactory<>("ip"));
 
-        TableColumn<PodInfo, String> column3 = new TableColumn<>("Namespace");
-        column3.setCellValueFactory(new PropertyValueFactory<>("podNameSpace"));
+        TableColumn<PodInfo, String> column3 = new TableColumn<>("Ports");
+        column3.setCellValueFactory(new PropertyValueFactory<>("ports"));
 
-        TableColumn<PodInfo, String> column4 = new TableColumn<>("Created");
-        column4.setCellValueFactory(new PropertyValueFactory<>("podCreationTimestamp"));
+        TableColumn<PodInfo, String> column4 = new TableColumn<>("Namespace");
+        column4.setCellValueFactory(new PropertyValueFactory<>("podNameSpace"));
 
-        TableColumn<PodInfo, String> column5 = new TableColumn<>("Status");
-        column5.setCellValueFactory(new PropertyValueFactory<>("phase"));
+        TableColumn<PodInfo, String> column5 = new TableColumn<>("Created");
+        column5.setCellValueFactory(new PropertyValueFactory<>("podCreationTimestamp"));
+
+        TableColumn<PodInfo, String> column6 = new TableColumn<>("Status");
+        column6.setCellValueFactory(new PropertyValueFactory<>("phase"));
 
         ObservableList<TableColumn<PodInfo, ?>> columns = getColumns();
         columns.add(column1);
@@ -46,6 +49,7 @@ public class PodsTable extends TableWithCopy<PodInfo> {
         columns.add(column3);
         columns.add(column4);
         columns.add(column5);
+        columns.add(column6);
         setOnMouseClicked(event -> {
             selectedPod = getSelectionModel().getSelectedItem();
         });

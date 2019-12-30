@@ -9,6 +9,8 @@ import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.models.V1Container;
+import io.kubernetes.client.models.V1ContainerPort;
 import io.kubernetes.client.models.V1EndpointAddress;
 import io.kubernetes.client.models.V1EndpointSubset;
 import io.kubernetes.client.models.V1Endpoints;
@@ -33,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class Kube {
 
     private String ip;
-    private Integer port;
+    private StringBuilder port = new StringBuilder();
     private String podName;
     private String podNameSpace;
     private String endpointName;
@@ -68,6 +70,7 @@ public class Kube {
             v1PodList.getItems().forEach(v1Pod -> {
                 String name;
                 String ip;
+                StringBuilder port = new StringBuilder();
                 String namespace;
                 String phase;
                 DateTime creationTimestamp;
@@ -76,11 +79,22 @@ public class Kube {
                 V1PodSpec v1PodSpec = v1Pod.getSpec();
                 if (v1ObjectMeta != null && v1PodStatus != null && v1PodSpec != null) {
                     name = v1ObjectMeta.getName();
-                    ip = v1PodStatus.getPodIP();
+                    ip =v1PodStatus.getPodIP();
                     namespace = v1ObjectMeta.getNamespace();
                     creationTimestamp = v1ObjectMeta.getCreationTimestamp();
                     phase = v1PodStatus.getPhase();
-                    PodInfo podInfo = new PodInfo(name, ip, namespace, creationTimestamp, phase);
+                    List<V1Container> containers = v1PodSpec.getContainers();
+                    if (containers != null) {
+                        containers.forEach(v1Container -> {
+                            List<V1ContainerPort> v1ContainerPorts = v1Container.getPorts();
+                            if (v1ContainerPorts != null) {
+                                v1ContainerPorts.forEach(v1ContainerPort -> {
+                                    port.append(String.format("%s:%s/", v1ContainerPort.getName(), v1ContainerPort.getContainerPort()));
+                                });
+                            }
+                        });
+                    }
+                    PodInfo podInfo = new PodInfo(name, ip, port.toString(), namespace, creationTimestamp, phase);
                     podInfoSet.add(podInfo);
                 }
             });
@@ -97,12 +111,8 @@ public class Kube {
             List<V1EndpointSubset> subsets = endpoint.getSubsets();
             if (subsets != null) {
                 subsets.forEach(v1EndpointSubset -> {
-                    v1EndpointSubset.getPorts().stream()
-                            .filter(v1EndpointPort -> {
-                                String portName = v1EndpointPort.getName();
-                                return portName != null && portName.contains("http");
-                            }).findFirst().ifPresent(v1EndpointPort -> {
-                        port = v1EndpointPort.getPort();
+                    v1EndpointSubset.getPorts().forEach(v1EndpointPort -> {
+                        port.append(String.format("%s:%s/ ", v1EndpointPort.getName(), v1EndpointPort.getPort()));
                     });
                     List<V1EndpointAddress> addresses = v1EndpointSubset.getAddresses();
                     if (addresses != null) {
@@ -177,7 +187,7 @@ public class Kube {
                         phase = v1PodStatus.getPhase();
                     }
                 });
-                pods.add(new PodInfo(podName, ip + ":" + port, podNameSpace, podCreationTimestamp, phase));
+                pods.add(new PodInfo(podName, ip, port.toString(), podNameSpace, podCreationTimestamp, phase));
             }
         });
     }
@@ -205,7 +215,7 @@ public class Kube {
     private void resetVariables() {
         podName = null;
         ip = null;
-        port = 0;
+        port = new StringBuilder();
         version = null;
         podCreationTimestamp = null;
         phase = null;

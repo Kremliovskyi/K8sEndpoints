@@ -8,6 +8,7 @@ public class PodInfo implements Comparable<PodInfo>{
 
     private String name;
     private String ip;
+    private String ports;
     private String podNameSpace;
     private String podCreationTimestamp;
     private String phase;
@@ -16,9 +17,10 @@ public class PodInfo implements Comparable<PodInfo>{
     public PodInfo() {
     }
 
-    public PodInfo(String name, String ip, String podNameSpace, DateTime podCreationTimestamp, String phase) {
+    public PodInfo(String name, String ip, String ports, String podNameSpace, DateTime podCreationTimestamp, String phase) {
         this.name = name;
         this.ip = ip;
+        this.ports = ports;
         this.podNameSpace = podNameSpace;
         this.podCreationTimestamp = normalizeDate(podCreationTimestamp);
         this.phase = phase != null ? phase : "";
@@ -75,6 +77,15 @@ public class PodInfo implements Comparable<PodInfo>{
 
     public PodInfo setSelectedContainer(String selectedContainer) {
         this.selectedContainer = selectedContainer;
+        return this;
+    }
+
+    public String getPorts() {
+        return ports;
+    }
+
+    public PodInfo setPorts(String ports) {
+        this.ports = ports;
         return this;
     }
 

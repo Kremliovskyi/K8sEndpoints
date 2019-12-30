@@ -81,6 +81,7 @@ class LogRequest {
                     .setPodCreationTimestamp(podInfo.getPodCreationTimestamp())
                     .setPodNameSpace(podInfo.getPodNameSpace())
                     .setIp(podInfo.getIp())
+                    .setPorts(podInfo.getPorts())
                     .setPhase(podInfo.getPhase());
         }
     }
