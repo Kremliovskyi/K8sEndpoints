@@ -58,7 +58,7 @@ public class PodsTable extends TableWithCopy<PodInfo> {
         autosize();
     }
 
-    PodInfo getSelectedPod() {
+    public PodInfo getSelectedPod() {
         return selectedPod;
     }
 

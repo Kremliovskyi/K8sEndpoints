@@ -1,6 +1,6 @@
 package getservicesinfo;
 
-import getservicesinfo.allpods.AllPodsButton;
+import getservicesinfo.podcontrol.allpods.AllPodsButton;
 import getservicesinfo.configfilechooser.ConfigFileStage;
 import getservicesinfo.configfilechooser.UserPreferences;
 import getservicesinfo.configparser.ConfigParser;
@@ -19,6 +19,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -127,6 +128,7 @@ public class Main extends Application {
                     HBox hBox = new HBox(allPodsButton, endpointControlBox);
                     hBox.setAlignment(Pos.BOTTOM_CENTER);
                     VBox vbox = new VBox(configFileMenu, contextButtons, endpointTable, hBox);
+                    VBox.setVgrow(endpointTable, Priority.ALWAYS);
                     root = new StackPane();
                     root.getChildren().add(0, vbox);
                     Scene scene = new Scene(root);

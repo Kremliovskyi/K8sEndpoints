@@ -1,4 +1,4 @@
-package getservicesinfo.allpods;
+package getservicesinfo.podcontrol.allpods;
 
 import getservicesinfo.kubernetes.Kube;
 import javafx.scene.control.Button;

@@ -5,13 +5,14 @@ import getservicesinfo.models.Endpoint;
 import getservicesinfo.models.PodInfo;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
 
-public class PodsStage extends Stage {
+public class PodsStage extends Stage implements IPodsStage {
 
     private Kube kube;
     private Set<PodInfo> podInfoSet;
@@ -35,16 +36,19 @@ public class PodsStage extends Stage {
 
         VBox vBox = new VBox(podsTable, podControlBox);
         vBox.setAlignment(Pos.CENTER);
+        VBox.setVgrow(podsTable, Priority.ALWAYS);
         Scene scene = new Scene(vBox, 900, 400);
         scene.getStylesheets().add("styles.css");
         setScene(scene);
         show();
     }
 
+    @Override
     public PodInfo getSelectedPod() {
         return podsTable.getSelectedPod();
     }
 
+    @Override
     public Kube getKube() {
         return kube;
     }
