@@ -12,13 +12,15 @@ public class ContextButtonsBox extends HBox {
 
     private static final String CONTEXT_SWITCH_COMMAND = "cmd /c kubectl config use-context %1$s";
     private List<ContextButton> contextButtons = new ArrayList<>();
+    private OnContextChangeListener contextChangeListener;
 
-    public ContextButtonsBox(EndpointTable endpointTable) {
+    public ContextButtonsBox(OnContextChangeListener contextChangeListener) {
         setAlignment(Pos.CENTER);
-        initButtons(endpointTable);
+        this.contextChangeListener = contextChangeListener;
+        initButtons();
     }
 
-    private void initButtons(EndpointTable endpointTable) {
+    private void initButtons() {
         ConfigParser.getInstance().getContextList().forEach(context -> {
             String contextName = context.getName();
             ContextButton contextButton = new ContextButton(contextName);
@@ -30,7 +32,7 @@ public class ContextButtonsBox extends HBox {
                 if (!contextButton.isClicked()) {
                     buttonClicked(contextButton);
                     String currentContext = contextButton.getContextName();
-                    endpointTable.refreshTable(currentContext);
+                    contextChangeListener.onContextChange(currentContext);
                     switchKubectlContext(currentContext);
                 }
             });

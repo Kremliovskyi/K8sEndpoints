@@ -1,14 +1,17 @@
 package getservicesinfo;
 
-import getservicesinfo.podcontrol.allpods.AllPodsButton;
 import getservicesinfo.configfilechooser.ConfigFileStage;
 import getservicesinfo.configfilechooser.UserPreferences;
 import getservicesinfo.configparser.ConfigParser;
 import getservicesinfo.contextcontrol.ContextButtonsBox;
+import getservicesinfo.contextcontrol.OnContextChangeListener;
 import getservicesinfo.endpointcontrol.EndpointControlBox;
 import getservicesinfo.endpointcontrol.EndpointTable;
+import getservicesinfo.endpointcontrol.OnEndpointsTableRefreshedListener;
 import getservicesinfo.kubernetes.Kube;
 import getservicesinfo.menu.ConfigFileMenu;
+import getservicesinfo.podcontrol.allpods.AllPodsButton;
+import getservicesinfo.services.ServicesButton;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -31,12 +34,15 @@ import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 
-public class Main extends Application {
+public class Main extends Application implements OnContextChangeListener, OnEndpointsTableRefreshedListener {
 
     private StackPane root;
     private Stage mainStage;
     private boolean isShowing;
     private Kube kube;
+    private AllPodsButton allPodsButton;
+    private ServicesButton servicesButton;
+    private EndpointTable endpointTable;
 
     public static void main(String[] args) {
         launch(args);
@@ -119,13 +125,14 @@ public class Main extends Application {
                 kube = new Kube(ConfigParser.getInstance().getCurrentContext());
                 Platform.runLater(() -> {
                     ConfigFileMenu configFileMenu = new ConfigFileMenu(this);
-                    EndpointTable endpointTable = new EndpointTable(kube, this);
-                    ContextButtonsBox contextButtons = new ContextButtonsBox(endpointTable);
+                    endpointTable = new EndpointTable(kube, this);
+                    ContextButtonsBox contextButtons = new ContextButtonsBox(this);
                     EndpointControlBox endpointControlBox = new EndpointControlBox(endpointTable);
                     mainStage = new Stage(StageStyle.DECORATED);
                     stage.hide();
-                    AllPodsButton allPodsButton = new AllPodsButton(kube);
-                    HBox hBox = new HBox(allPodsButton, endpointControlBox);
+                    allPodsButton = new AllPodsButton(kube);
+                    servicesButton = new ServicesButton(kube);
+                    HBox hBox = new HBox(allPodsButton, servicesButton, endpointControlBox);
                     hBox.setAlignment(Pos.BOTTOM_CENTER);
                     VBox vbox = new VBox(configFileMenu, contextButtons, endpointTable, hBox);
                     VBox.setVgrow(endpointTable, Priority.ALWAYS);
@@ -171,4 +178,16 @@ public class Main extends Application {
         initStage.show();
     }
 
+    @Override
+    public void onContextChange(String context) {
+        showProgressIndicator();
+        endpointTable.refreshTable(context);
+    }
+
+    @Override
+    public void onEndpointsTableRefreshed() {
+        disableProgressIndicator();
+        allPodsButton.changeText();
+        servicesButton.changeText();
+    }
 }

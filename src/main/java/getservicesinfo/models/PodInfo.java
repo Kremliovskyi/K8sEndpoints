@@ -1,5 +1,6 @@
 package getservicesinfo.models;
 
+import getservicesinfo.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -22,7 +23,7 @@ public class PodInfo implements Comparable<PodInfo>{
         this.ip = ip;
         this.ports = ports;
         this.podNameSpace = podNameSpace;
-        this.podCreationTimestamp = normalizeDate(podCreationTimestamp);
+        this.podCreationTimestamp = Utils.normalizeDate(podCreationTimestamp);
         this.phase = phase != null ? phase : "";
     }
 
@@ -92,10 +93,5 @@ public class PodInfo implements Comparable<PodInfo>{
     @Override
     public int compareTo(PodInfo podInfo) {
         return this.name.compareTo(podInfo.getName());
-    }
-
-    private String normalizeDate(DateTime creationTimestamp) {
-        DateTimeFormatter dtf = DateTimeFormat.forPattern("MM/dd/yyyy HH:mm");
-        return creationTimestamp != null ? dtf.print(creationTimestamp) : "";
     }
 }

@@ -4,6 +4,7 @@ import getservicesinfo.Main;
 import getservicesinfo.configparser.ConfigParser;
 import getservicesinfo.models.Endpoint;
 import getservicesinfo.models.PodInfo;
+import getservicesinfo.models.ServiceInfo;
 import io.kubernetes.client.ApiCallback;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.ApiException;
@@ -15,11 +16,17 @@ import io.kubernetes.client.models.V1EndpointAddress;
 import io.kubernetes.client.models.V1EndpointSubset;
 import io.kubernetes.client.models.V1Endpoints;
 import io.kubernetes.client.models.V1EndpointsList;
+import io.kubernetes.client.models.V1LoadBalancerIngress;
+import io.kubernetes.client.models.V1LoadBalancerStatus;
 import io.kubernetes.client.models.V1ObjectMeta;
 import io.kubernetes.client.models.V1ObjectReference;
 import io.kubernetes.client.models.V1PodList;
 import io.kubernetes.client.models.V1PodSpec;
 import io.kubernetes.client.models.V1PodStatus;
+import io.kubernetes.client.models.V1ServiceList;
+import io.kubernetes.client.models.V1ServicePort;
+import io.kubernetes.client.models.V1ServiceSpec;
+import io.kubernetes.client.models.V1ServiceStatus;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 import javafx.scene.control.ProgressBar;
@@ -102,6 +109,48 @@ public class Kube {
             Main.showAlert(e.getMessage());
         }
         return podInfoSet;
+    }
+
+    public Set<ServiceInfo> getServicesInfo() {
+        Set<ServiceInfo> serviceInfoSet = new TreeSet<>();
+        try {
+            V1ServiceList v1ServiceList = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null);
+            v1ServiceList.getItems().forEach(v1Service -> {
+                String name;
+                StringBuilder ip = new StringBuilder();
+                StringBuilder port = new StringBuilder();
+                String namespace;
+                DateTime creationTimestamp;
+                V1ObjectMeta v1ObjectMeta = v1Service.getMetadata();
+                V1ServiceSpec v1ServiceSpec = v1Service.getSpec();
+                V1ServiceStatus v1ServiceStatus = v1Service.getStatus();
+                if (v1ObjectMeta != null && v1ServiceSpec != null && v1ServiceStatus != null) {
+                    name = v1ObjectMeta.getName();
+                    namespace = v1ObjectMeta.getNamespace();
+                    creationTimestamp = v1ObjectMeta.getCreationTimestamp();
+                    List<V1ServicePort> v1ServicePorts = v1ServiceSpec.getPorts();
+                    if (v1ServicePorts != null) {
+                        v1ServicePorts.forEach(v1ServicePort -> {
+                            port.append(String.format("%s:%s/", v1ServicePort.getName(), v1ServicePort.getPort()));
+                        });
+                    }
+                    V1LoadBalancerStatus v1LoadBalancerStatus = v1ServiceStatus.getLoadBalancer();
+                    if (v1LoadBalancerStatus != null) {
+                        List<V1LoadBalancerIngress> v1LoadBalancerIngresses = v1LoadBalancerStatus.getIngress();
+                        if (v1LoadBalancerIngresses != null) {
+                            v1LoadBalancerIngresses.stream().findFirst().ifPresent(v1LoadBalancerIngress -> {
+                                ip.append(v1LoadBalancerIngress.getIp());
+                            });
+                        }
+                    }
+                    ServiceInfo serviceInfo = new ServiceInfo(name, ip.toString(), port.toString(), namespace, creationTimestamp);
+                    serviceInfoSet.add(serviceInfo);
+                }
+            });
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
+        return serviceInfoSet;
     }
 
     private void fillInfo(CoreV1Api api) throws Throwable {

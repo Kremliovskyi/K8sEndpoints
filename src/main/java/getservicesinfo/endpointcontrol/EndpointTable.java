@@ -12,6 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class EndpointTable extends TableWithCopy<Endpoint> {
 
@@ -19,12 +21,12 @@ public class EndpointTable extends TableWithCopy<Endpoint> {
     private Kube kube;
     private PodsStage podsStage;
     private String currentContext;
-    private Main main;
+    private OnEndpointsTableRefreshedListener tableRefreshedListener;
 
-    public EndpointTable(Kube kube, Main main) {
+    public EndpointTable(Kube kube, OnEndpointsTableRefreshedListener tableRefreshedListener) {
         this.kube = kube;
         this.currentContext = kube.getCurrentContext();
-        this.main = main;
+        this.tableRefreshedListener = tableRefreshedListener;
         setUpEndpointTable();
     }
 
@@ -56,8 +58,7 @@ public class EndpointTable extends TableWithCopy<Endpoint> {
     }
 
     public void refreshTable(String context) {
-        main.showProgressIndicator();
-        new Thread(() -> {
+        Executors.newSingleThreadExecutor().submit(() -> {
             selectedEndpoint = null;
             currentContext = context;
             getItems().clear();
@@ -69,9 +70,9 @@ public class EndpointTable extends TableWithCopy<Endpoint> {
             }
             getItems().addAll(kube.getEndpoints());
             Platform.runLater(() -> {
-                main.disableProgressIndicator();
+                tableRefreshedListener.onEndpointsTableRefreshed();
             });
-        }).start();
+        });
     }
 
     void showPods() {
