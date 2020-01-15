@@ -2,18 +2,20 @@ package getservicesinfo.endpointcontrol;
 
 import getservicesinfo.Main;
 import getservicesinfo.TableWithCopy;
+import getservicesinfo.contextcontrol.OnContextChangeListener;
 import getservicesinfo.kubernetes.Kube;
 import getservicesinfo.models.Endpoint;
 import getservicesinfo.podcontrol.PodsStage;
-import io.kubernetes.client.ApiException;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-import java.io.IOException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class EndpointTable extends TableWithCopy<Endpoint> {
 
@@ -22,11 +24,13 @@ public class EndpointTable extends TableWithCopy<Endpoint> {
     private PodsStage podsStage;
     private String currentContext;
     private OnEndpointsTableRefreshedListener tableRefreshedListener;
+    private OnContextChangeListener contextChangeListener;
 
-    public EndpointTable(Kube kube, OnEndpointsTableRefreshedListener tableRefreshedListener) {
+    public EndpointTable(Kube kube, OnEndpointsTableRefreshedListener tableRefreshedListener, OnContextChangeListener contextChangeListener) {
         this.kube = kube;
         this.currentContext = kube.getCurrentContext();
         this.tableRefreshedListener = tableRefreshedListener;
+        this.contextChangeListener = contextChangeListener;
         setUpEndpointTable();
     }
 
@@ -54,7 +58,7 @@ public class EndpointTable extends TableWithCopy<Endpoint> {
     }
 
     void refreshWithCurrentContext() {
-        refreshTable(currentContext);
+        contextChangeListener.onContextChange(currentContext);
     }
 
     public void refreshTable(String context) {

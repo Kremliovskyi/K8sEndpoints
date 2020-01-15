@@ -125,7 +125,7 @@ public class Main extends Application implements OnContextChangeListener, OnEndp
                 kube = new Kube(ConfigParser.getInstance().getCurrentContext());
                 Platform.runLater(() -> {
                     ConfigFileMenu configFileMenu = new ConfigFileMenu(this);
-                    endpointTable = new EndpointTable(kube, this);
+                    endpointTable = new EndpointTable(kube, this, this);
                     ContextButtonsBox contextButtons = new ContextButtonsBox(this);
                     EndpointControlBox endpointControlBox = new EndpointControlBox(endpointTable);
                     mainStage = new Stage(StageStyle.DECORATED);
